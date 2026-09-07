@@ -1,21 +1,23 @@
-const { Admin } = require("../db");
+const jwt = require("jsonwebtoken")
+const {JWT_SECRET} = require ("../config")
 
 const AdminMiddleware = (req, res, next) => {
-  const username = req.headers.username;
-  const password = req.headers.password;
+  const rawToken = req.headers.authorization;
+  const rawTokenArr = rawToken.split(" ");
+  const token = rawTokenArr[1];
 
-  Admin.findOne({
-    username,
-    password,
-  }).then((value) => {
-    if (value) {
-      next();
-    } else {
-      res.status(403).send({
-        message: "User doesn't exists.",
-      });
-    }
-  });
-};
+  const decoded = jwt.verify(token, JWT_SECRET);
+
+  if (decoded.username) {
+    req.headers.username= username
+    next();
+  } else {
+    res.status(403).send({
+      message: "User doesn't exists.",
+    });
+  }
+}
+
+
 
 module.exports = AdminMiddleware;
