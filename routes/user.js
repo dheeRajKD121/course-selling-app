@@ -1,7 +1,9 @@
  const express = require('express')
  const router = express.Router();
  const userMiddleware = require("../middleware/user");
+ const jwt = require('jsonwebtoken')
 const { Course, User } = require('../db');
+const { JWT_SECRET } = require('../config');
 
  router.post('/signup',async(req,res)=>{
    
@@ -23,6 +25,34 @@ const { Course, User } = require('../db');
         userId: userCreated._id
     })
  })
+
+ router.post("/signin", async (req, res) => {
+   const username = req.body.username;
+   const password = req.body.password;
+
+   const IsUserExit = await User.findOne({
+     username,
+     password,
+   });
+
+   if (IsUserExit) {
+     const token = jwt.sign(
+       {
+         username,
+       },
+       JWT_SECRET,
+     );
+
+     return res.status(200).send({
+       message:"Logged in successfully",
+       token,
+     });
+   } else {
+     return res.status(400).send({
+       message: "Either username or password is incorrect",
+     });
+   }
+ });
 
 
   router.get("/courses", async(req,res)=>{
